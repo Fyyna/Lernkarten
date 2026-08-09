@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lernkarten – DTP 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f1a; color: #e0e0e0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+  header { width: 100%; background: #1a1a2e; padding: 20px 30px; border-bottom: 3px solid #e94560; display: flex; justify-content: space-between; align-items: center; }
+  header h1 { font-size: 1.4rem; color: #fff; }
+  header h1 span { color: #e94560; }
+  .counter { color: #888; font-size: 0.95rem; }
+  .back-btn { background: none; border: 1px solid #333; color: #888; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+  .back-btn:hover { border-color: #e94560; color: #fff; }
+
+  /* INDEX */
+  .index { flex: 1; width: 100%; max-width: 700px; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+  .index-title { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .index-title span { color: #e94560; }
+  .index-sub { color: #666; font-size: 0.95rem; margin-bottom: 40px; }
+  .category-section { width: 100%; margin-bottom: 32px; }
+  .category-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #e94560; margin-bottom: 12px; padding-left: 4px; }
+  .deck-list { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+  .deck-item { background: #1a1a2e; border: 2px solid #0f3460; border-radius: 14px; padding: 24px 28px; cursor: pointer; transition: all 0.25s; display: flex; justify-content: space-between; align-items: center; }
+  .deck-item:hover { border-color: #e94560; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(233,69,96,0.15); }
+  .deck-info h2 { font-size: 1.15rem; color: #fff; margin-bottom: 4px; }
+  .deck-info p { font-size: 0.85rem; color: #666; }
+  .deck-count { background: rgba(233,69,96,0.12); color: #e94560; font-size: 0.8rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; white-space: nowrap; }
+  .index-footer { margin-top: auto; padding-top: 40px; color: #333; font-size: 0.8rem; }
+
+  /* CARDS */
+  .card-view { display: none; flex-direction: column; align-items: center; width: 100%; flex: 1; }
+  .card-view.active { display: flex; }
+  .card-container { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; max-width: 700px; padding: 30px 20px; perspective: 1000px; }
+  .card { width: 100%; min-height: 320px; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.5s ease; }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-face { position: absolute; width: 100%; min-height: 320px; border-radius: 16px; padding: 40px 35px; display: flex; flex-direction: column; justify-content: center; backface-visibility: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  .card-front { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border: 2px solid #0f3460; }
+  .card-back { background: linear-gradient(135deg, #1a2e1a 0%, #163e2e 100%); border: 2px solid #2d6a4f; transform: rotateY(180deg); }
+  .card-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+  .card-front .card-label { color: #e94560; }
+  .card-back .card-label { color: #52b788; }
+  .card-text { font-size: 1.25rem; line-height: 1.6; }
+  .card-front .card-text { color: #fff; font-weight: 600; }
+  .card-back .card-text { color: #d8f3dc; }
+  .card-hint { position: absolute; bottom: 18px; right: 24px; font-size: 0.75rem; color: #555; }
+  .nav { display: flex; gap: 12px; padding: 20px; align-items: center; }
+  .nav button { background: #1a1a2e; border: 2px solid #0f3460; color: #fff; padding: 12px 28px; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+  .nav button:hover { background: #0f3460; border-color: #e94560; }
+  .nav button:disabled { opacity: 0.3; cursor: default; }
+  .progress { width: 100%; max-width: 700px; padding: 0 20px; }
+  .progress-bar { height: 4px; background: #1a1a2e; border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #e94560; transition: width 0.3s; border-radius: 2px; }
+  .keyboard-hint { color: #444; font-size: 0.8rem; padding-bottom: 20px; }
+  code { background: rgba(233,69,96,0.15); padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; color: #e94560; }
+</style>
+</head>
+<body>
+
+<!-- INDEX VIEW -->
+<div id="indexView">
+  <header>
+    <h1><span>LERNKARTEN</span> | DTP 2026</h1>
+  </header>
+  <div class="index">
+    <div class="index-title"><span>Lernkarten</span> Decks</div>
+    <div class="index-sub">Wähle ein Thema zum Lernen</div>
+    <div id="deckList"></div>
+    <div class="index-footer">Digital Talents Academy</div>
+  </div>
+</div>
+
+<!-- CARD VIEW -->
+<div id="cardView" class="card-view">
+  <header>
+    <h1><span>LERNKARTEN</span> | <span id="deckTitle"></span></h1>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <div class="counter" id="counter"></div>
+      <button class="back-btn" onclick="goHome()">← Übersicht</button>
+    </div>
+  </header>
+  <div class="progress"><div class="progress-bar"><div class="progress-fill" id="progress"></div></div></div>
+  <div class="card-container">
+    <div class="card" id="card" onclick="flip()">
+      <div class="card-face card-front">
+        <div class="card-label">Frage</div>
+        <div class="card-text" id="question"></div>
+        <div class="card-hint">Klicken zum Umdrehen</div>
+      </div>
+      <div class="card-face card-back">
+        <div class="card-label">Antwort</div>
+        <div class="card-text" id="answer"></div>
+        <div class="card-hint">Klicken zum Zurückdrehen</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav">
+    <button id="prevBtn" onclick="prev()">← Zurück</button>
+    <button id="nextBtn" onclick="next()">Weiter →</button>
+  </div>
+  <div class="keyboard-hint">Leertaste = umdrehen | Pfeiltasten = navigieren | Esc = Übersicht</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DECKS — neue Themen einfach hier anfügen
+//  category: "Basics" | "Code Track" | "Tech Track"
+// ═══════════════════════════════════════════
+
+const decks = [
+   {
+    title: "Hamming-Code",
+    description: "Fehlerkorrektur, Paritätsbits, Hammingdistanz",
+    category: "Basics",
+    cards: [
+      { q: "Was ist die Hammingdistanz?", a: "Die Anzahl der Stellen, an denen sich zwei Codewörter unterscheiden." },
+      { q: "Was ist ein Paritätsbit?", a: "Ein zusätzliches Bit, das an ein Codewort angehängt wird, damit die Gesamtzahl der Einsen gerade oder ungerade ist." },
+      { q: "Even Parity vs. Odd Parity?", a: "Even Parity: Anzahl Einsen = gerade<br>Odd Parity: Anzahl Einsen = ungerade" },
+      { q: "Auf welchen Positionen sitzen die Paritätsbits?", a: "Auf Zweierpotenz-Positionen:<br><code>1, 2, 4, 8, 16, 32, ...</code>" },
+      { q: "Wie viele Positionen hat ein Hamming-Code mit 7 Datenbits?", a: "11 Positionen<br>(7 Datenbits + 4 Paritätsbits)" },
+      { q: "Wie erkennst du beim Empfang, ob ein Fehler vorliegt?", a: "Alle Positionen mit 1 sammeln, binär aufschreiben, spaltenweise Parität prüfen.<br><code>0000</code> = kein Fehler." },
+      { q: "Wie findest du die fehlerhafte Position?", a: "Das Ergebnis der Paritätsprüfung in Dezimal umwandeln = Position des fehlerhaften Bits." },
+      { q: "Was ist die Limitation des Hamming-Codes?", a: "Er kann nur <strong>einen einzigen</strong> Bitfehler korrigieren. Bei 2+ Fehlern versagt er." },
+      { q: "Wie berechnet man den Zeichenvorrat?", a: "<code>2<sup>n</sup></code> (n = Stellenzahl)<br>Beispiel: 8 Bit = 2⁸ = 256" },
+      { q: "Welche Hammingdistanz braucht man, um 1 Fehler zu korrigieren?", a: "Mindestens Distanz 3.<br>Distanz 2 reicht nur zum <strong>Erkennen</strong>." }
+    ]
+  },
+  {
+    title: "Floating Point Numbers",
+    description: "Binäre Kommazahlen, IEEE 754, Epsilon-Vergleich",
+    category: "Basics",
+    cards: [
+      { q: "Warum verwenden Computer das Binärsystem?", a: "Weil die Hardware nur zwei Zustände kennt: Strom an (1) und Strom aus (0). Alle Logik basiert auf diesen zwei Zuständen." },
+      { q: "Was sind die Stellenwerte rechts vom Komma im Binärsystem?", a: "0.5, 0.25, 0.125, 0.0625 usw.<br>Jede Stelle ist halb so viel wert wie die vorherige:<br><code>2⁻¹, 2⁻², 2⁻³, 2⁻⁴ ...</code>" },
+      { q: "Ist 0.75 binär exakt darstellbar? Warum?", a: "Ja, weil 0.75 = 0.5 + 0.25<br>(also 2⁻¹ + 2⁻²).<br>Die Bausteine passen exakt zusammen." },
+      { q: "Ist 0.1 binär exakt darstellbar? Warum nicht?", a: "Nein. Es gibt keine Kombination von 0.5, 0.25, 0.125 usw., die exakt 0.1 ergibt. Der Computer speichert nur eine Annäherung." },
+      { q: "Was ergibt 0.1 + 0.2 im Computer?", a: "Nicht exakt 0.3, sondern ca.<br><code>0.30000000000000004</code><br>Weil sowohl 0.1 als auch 0.2 binär nicht exakt darstellbar sind." },
+      { q: "Was ist die wissenschaftliche Notation?", a: "Eine Schreibweise für sehr grosse oder kleine Zahlen:<br>Mantisse × Basis<sup>Exponent</sup><br>Z.B. 300'000'000 = 3.0 × 10⁸" },
+      { q: "Was ist die Mantisse?", a: "Die «wichtigen Ziffern» einer Zahl in wissenschaftlicher Notation.<br>Bei 4.2 × 10⁻⁴ ist <strong>4.2</strong> die Mantisse." },
+      { q: "Was ist der Exponent?", a: "Er sagt, wie weit und in welche Richtung der Komma-Punkt verschoben wird.<br>Positiv = grosse Zahl<br>Negativ = kleine Zahl" },
+      { q: "Warum heisst es «Floating Point»?", a: "Weil der Komma-Punkt je nach Exponent an verschiedene Stellen «schwebt» — er ist nicht fixiert wie bei Festkommazahlen." },
+      { q: "Aus welchen drei Teilen besteht eine Floating-Point-Zahl?", a: "1) <strong>Vorzeichen</strong> (positiv/negativ)<br>2) <strong>Exponent</strong> (wo sitzt der Punkt → Reichweite)<br>3) <strong>Mantisse</strong> (wichtige Ziffern → Genauigkeit)" },
+      { q: "Was steuert der Exponent bei Floating Point?", a: "Die <strong>Reichweite</strong> — also wie extrem gross oder klein die darstellbaren Zahlen sein können." },
+      { q: "Was steuert die Mantisse bei Floating Point?", a: "Die <strong>Genauigkeit</strong> — also wie viele signifikante Stellen die Zahl hat (wie präzise sie ist)." },
+      { q: "Wie viele Bits hat Single Precision (IEEE 754)?", a: "32 Bit total:<br><code>1 Bit Vorzeichen | 8 Bit Exponent | 23 Bit Mantisse</code>" },
+      { q: "Wie viele Bits hat Double Precision (IEEE 754)?", a: "64 Bit total:<br><code>1 Bit Vorzeichen | 11 Bit Exponent | 52 Bit Mantisse</code>" },
+      { q: "Was ist der Trade-off bei Floating Point?", a: "Bei begrenzten Bits muss man zwischen <strong>Reichweite</strong> (Exponent) und <strong>Genauigkeit</strong> (Mantisse) abwägen.<br>Beides gleichzeitig geht nur mit mehr Bits." },
+      { q: "Warum darf man Floats nie mit <code>==</code> vergleichen?", a: "Weil Floats fast nie exakt sind.<br><code>0.1 + 0.2</code> ergibt nicht exakt 0.3, daher würde <code>a == b</code> false ergeben, obwohl die Werte «praktisch gleich» sind." },
+      { q: "Wie vergleicht man Floats korrekt?", a: "Mit einem Epsilon-Vergleich:<br><code>abs(a - b) &lt; 0.0000001</code><br>Man prüft, ob der Abstand kleiner als ein winziger Grenzwert ist." },
+      { q: "Was macht die Funktion <code>abs()</code>?", a: "Sie gibt den <strong>Betrag</strong> (den positiven Wert) einer Zahl zurück.<br><code>abs(-5) = 5</code><br><code>abs(3) = 3</code><br>So ist der Abstand immer positiv." },
+      { q: "Wie kann man Floating-Point-Fehler in der Praxis vermeiden?", a: "Indem man <strong>Ganzzahlen</strong> verwendet.<br>Z.B. Cent statt Franken (150 statt 1.50), Mikroliter statt Milliliter.<br>Keine Kommazahl = kein Rundungsfehler." },
+      { q: "Was passiert, wenn man kleine Float-Fehler über viele Berechnungen summiert?", a: "Die Fehler summieren sich und können zu spürbaren Abweichungen führen.<br>Z.B. ergibt 0.1 tausendmal addiert nicht exakt 100." }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════
+//  CATEGORY ORDER
+// ═══════════════════════════════════════════
+
+const categoryOrder = ["Basics", "Code Track", "Tech Track"];
+
+// ═══════════════════════════════════════════
+//  APP LOGIC
+// ═══════════════════════════════════════════
+
+let activeDeck = null;
+let current = 0;
+let isFlipped = false;
+
+// Build index grouped by category
+const deckListEl = document.getElementById('deckList');
+
+// Group decks by category
+const grouped = {};
+decks.forEach((deck, i) => {
+  const cat = deck.category || "Sonstiges";
+  if (!grouped[cat]) grouped[cat] = [];
+  grouped[cat].push({ deck, index: i });
+});
+
+// Render in defined order, then any extras
+const renderedCats = new Set();
+categoryOrder.forEach(cat => {
+  if (grouped[cat]) {
+    renderCategory(cat, grouped[cat]);
+    renderedCats.add(cat);
+  }
+});
+Object.keys(grouped).forEach(cat => {
+  if (!renderedCats.has(cat)) renderCategory(cat, grouped[cat]);
+});
+
+function renderCategory(cat, items) {
+  const section = document.createElement('div');
+  section.className = 'category-section';
+
+  const label = document.createElement('div');
+  label.className = 'category-label';
+  label.textContent = cat;
+  section.appendChild(label);
+
+  const list = document.createElement('div');
+  list.className = 'deck-list';
+
+  items.forEach(({ deck, index }) => {
+    const el = document.createElement('div');
+    el.className = 'deck-item';
+    el.innerHTML = `
+      <div class="deck-info">
+        <h2>${deck.title}</h2>
+        <p>${deck.description}</p>
+      </div>
+      <div class="deck-count">${deck.cards.length} Karten</div>
+    `;
+    el.addEventListener('click', () => openDeck(index));
+    list.appendChild(el);
+  });
+
+  section.appendChild(list);
+  deckListEl.appendChild(section);
+}
+
+function openDeck(i) {
+  activeDeck = decks[i];
+  current = 0;
+  isFlipped = false;
+  document.getElementById('deckTitle').textContent = activeDeck.title;
+  document.getElementById('indexView').style.display = 'none';
+  document.getElementById('cardView').classList.add('active');
+  render();
+}
+
+function goHome() {
+  document.getElementById('cardView').classList.remove('active');
+  document.getElementById('indexView').style.display = '';
+  activeDeck = null;
+}
+
+function render() {
+  if (!activeDeck) return;
+  const c = activeDeck.cards[current];
+  document.getElementById('question').innerHTML = c.q;
+  document.getElementById('answer').innerHTML = c.a;
+  document.getElementById('counter').textContent = `${current + 1} / ${activeDeck.cards.length}`;
+  document.getElementById('progress').style.width = `${((current + 1) / activeDeck.cards.length) * 100}%`;
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = current === activeDeck.cards.length - 1;
+  if (isFlipped) { document.getElementById('card').classList.remove('flipped'); isFlipped = false; }
+}
+
+function flip() { document.getElementById('card').classList.toggle('flipped'); isFlipped = !isFlipped; }
+function next() { if (activeDeck && current < activeDeck.cards.length - 1) { current++; render(); } }
+function prev() { if (activeDeck && current > 0) { current--; render(); } }
+
+document.addEventListener('keydown', (e) => {
+  if (!activeDeck) return;
+  if (e.code === 'Space') { e.preventDefault(); flip(); }
+  if (e.code === 'ArrowRight') next();
+  if (e.code === 'ArrowLeft') prev();
+  if (e.code === 'Escape') goHome();
+});
+</script>
+</body>
+</html>
