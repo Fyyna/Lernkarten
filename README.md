@@ -1,4 +1,4 @@
-# Lernkarten — Code Track 2.0
+# Lernkarten — DTP 2026
 
 Minimalistische Lernkarten-App für den DTP-Unterricht an der Digital Talents Academy.
 
